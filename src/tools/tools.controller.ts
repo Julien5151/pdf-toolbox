@@ -16,6 +16,12 @@ import { PDFDocument } from 'pdf-lib';
 export class ToolsController {
     @Post('merge')
     @HttpCode(200)
+    @Header(
+        'Content-Disposition',
+        'attachment; filename="merged_documents.pdf"',
+    )
+    @UseInterceptors(AnyFilesInterceptor())
+    // Swagger meta-data
     @ApiConsumes('multipart/form-data')
     @ApiBody({
         schema: {
@@ -31,12 +37,9 @@ export class ToolsController {
             },
         },
     })
-    @ApiOkResponse({ description: 'Documents merged successfully' })
-    @Header(
-        'Content-Disposition',
-        'attachment; filename="merged_documents.pdf"',
-    )
-    @UseInterceptors(AnyFilesInterceptor())
+    @ApiOkResponse({
+        description: 'Documents merged successfully',
+    })
     async uploadFile(
         @UploadedFiles() files: Array<Express.Multer.File>,
     ): Promise<StreamableFile> {
