@@ -1,18 +1,21 @@
 import {
     Controller,
+    Header,
+    HttpCode,
     Post,
     StreamableFile,
     UploadedFiles,
     UseInterceptors,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { PDFDocument } from 'pdf-lib';
 
 @Controller('tools')
 @ApiTags('Tools')
 export class ToolsController {
     @Post('merge')
+    @HttpCode(200)
     @ApiConsumes('multipart/form-data')
     @ApiBody({
         schema: {
@@ -28,6 +31,11 @@ export class ToolsController {
             },
         },
     })
+    @ApiOkResponse({ description: 'Documents merged successfully' })
+    @Header(
+        'Content-Disposition',
+        'attachment; filename="merged_documents.pdf"',
+    )
     @UseInterceptors(AnyFilesInterceptor())
     async uploadFile(
         @UploadedFiles() files: Array<Express.Multer.File>,
