@@ -31,11 +31,12 @@ export class ToolsController {
     @UseInterceptors(AnyFilesInterceptor())
     // Swagger meta-data
     @ApiOperation({
-        summary: 'Merges pdf and images into a single pdf document',
+        summary: 'Merge pdfs and images into a single pdf document',
         description: `
         Supported file formats :
             • image/jpeg
             • image/jpg
+            • image/png
             • application/pdf
         `,
     })
