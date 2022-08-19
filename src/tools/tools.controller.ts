@@ -9,12 +9,19 @@ import {
     UseInterceptors,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { PDFDocument } from 'pdf-lib';
+import {
+    ApiBody,
+    ApiConsumes,
+    ApiOkResponse,
+    ApiOperation,
+    ApiTags,
+} from '@nestjs/swagger';
+import { PdfService } from 'src/services/pdf/pdf.service';
 
 @Controller('tools')
 @ApiTags('Tools')
 export class ToolsController {
+    constructor(private pdfService: PdfService) {}
     @Post('merge')
     @HttpCode(200)
     @Header(
@@ -23,6 +30,15 @@ export class ToolsController {
     )
     @UseInterceptors(AnyFilesInterceptor())
     // Swagger meta-data
+    @ApiOperation({
+        summary: 'Merges pdf and images into a single pdf document',
+        description: `
+        Supported file formats :
+            • image/jpeg
+            • image/jpg
+            • application/pdf
+        `,
+    })
     @ApiConsumes('multipart/form-data')
     @ApiBody({
         schema: {
@@ -47,23 +63,8 @@ export class ToolsController {
     ): Promise<StreamableFile> {
         if (!files || files.length === 0)
             throw new BadRequestException('At least one file is mandatory');
-        // Extract file buffers
-        const pdfsToMerge = files.map((file) => file.buffer);
-        // Init empty document
-        const mergedPdf = await PDFDocument.create();
-        // Add pages from each file
-        for (const pdfBytes of pdfsToMerge) {
-            const pdf = await PDFDocument.load(pdfBytes);
-            const copiedPages = await mergedPdf.copyPages(
-                pdf,
-                pdf.getPageIndices(),
-            );
-            copiedPages.forEach((page) => {
-                mergedPdf.addPage(page);
-            });
-        }
-        // Save merged file
-        const buffer = await mergedPdf.save();
+        // Merge files
+        const buffer = await this.pdfService.mergeFiles(files);
         // Return streamable file
         return new StreamableFile(buffer, { type: 'application/pdf' });
     }
