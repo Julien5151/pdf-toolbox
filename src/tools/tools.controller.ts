@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     Controller,
     Header,
     HttpCode,
@@ -25,6 +26,7 @@ export class ToolsController {
     @ApiConsumes('multipart/form-data')
     @ApiBody({
         schema: {
+            required: ['files'],
             type: 'object',
             properties: {
                 files: {
@@ -43,6 +45,8 @@ export class ToolsController {
     async uploadFile(
         @UploadedFiles() files: Array<Express.Multer.File>,
     ): Promise<StreamableFile> {
+        if (!files || files.length === 0)
+            throw new BadRequestException('At least one file is mandatory');
         // Extract file buffers
         const pdfsToMerge = files.map((file) => file.buffer);
         // Init empty document
